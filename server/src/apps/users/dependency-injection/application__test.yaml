@@ -1,0 +1,54 @@
+services:
+  # ------------ Factory config ------------- #
+
+  Contexts.users.domain.UsersRepository:
+    factory:
+      class: ../../../contexts/users/infrastructure/persistence/UsersRepositoryFactory
+      method: createRepository
+    arguments: ["postgresql"] ## you can change it to other database that has been implemented
+
+  # --------- Available repositories --------- #
+
+  Contexts.users.infrastructure.persistence.PostgresqlRepository:
+    class: ../../../contexts/users/infrastructure/persistence/postgresql/PostgresqlRepository
+
+  # ------------   Health check ------------- #
+
+  Apps.users.controller.StatusController:
+    class: ../controllers/StatusCtrl
+
+  # ------------  Create Users ------------- #
+
+  Contexts.users.application.useCases.UserCreator:
+    class: ../../../contexts/users/application/useCases/UserCreator
+    arguments: ["@Contexts.users.domain.UsersRepository"]
+
+  Apps.users.controller.CreateUserCtrl:
+    class: ../controllers/CreateUserCtrl
+    arguments: ["@Contexts.users.application.useCases.UserCreator"]
+
+  # ------------  Find Users ------------- #
+
+  Contexts.users.application.useCases.FindAllUsers:
+    class: ../../../contexts/users/application/useCases/FindAllUsers
+    arguments: ["@Contexts.users.domain.UsersRepository"]
+
+  Apps.users.controller.FindAllUsersCtrl:
+    class: ../controllers/FindAllUsersCtrl
+    arguments: ["@Contexts.users.application.useCases.FindAllUsers"]
+
+  # ------------  Find User by Id ------------- #
+
+  Contexts.users.application.useCases.FindUserById:
+    class: ../../../contexts/users/application/useCases/FindUserById
+    arguments: ["@Contexts.users.domain.UsersRepository"]
+
+  Apps.users.controller.FindUserByIdCtrl:
+    class: ../controllers/FindUserByIdCtrl
+    arguments: ["@Contexts.users.application.useCases.FindUserById"]
+
+  #Apps.users.controller.LoginCtrl:
+  #  class: ../../controllers/LoginCtrl
+  #  arguments: ["@Apps.contexts.users.application.services.LoginService"]
+  #imports:
+  #  - {resource: ./apps/application.yaml}

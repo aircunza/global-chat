@@ -1,0 +1,36 @@
+services:
+  postgres_dev:
+    image: postgres:13
+    env_file:
+      - .env.dev
+    environment:
+      - POSTGRES_DB=${PG_DB}
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+    ports:
+      - 5432:5432
+    volumes:
+      - ./database_dev:/var/lib/postgresql/data
+    profiles:
+      - dev
+
+  postgres_test:
+    image: postgres:13
+    env_file:
+      - .env.test
+    environment:
+      - POSTGRES_DB=${PG_DB}
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+    ports:
+      - 5433:5432
+    profiles:
+      - test
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@mail.com
+      - PGADMIN_DEFAULT_PASSWORD=root
+    ports:
+      - 5050:80

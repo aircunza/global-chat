@@ -1,0 +1,24 @@
+services:
+  # ------------ Factory config ------------- #
+
+  Contexts.auth.domain.AuthRepository:
+    factory:
+      class: ../../../contexts/auth/infrastructure/persistence/AuthRepositoryFactory
+      method: createRepository
+    arguments: ["postgresql"] ## you can change it to other database that has been implemented
+
+  # --------- Available repositories --------- #
+
+  Contexts.auth.infrastructure.persistence.PostgresqlRepository:
+    class: ../../../contexts/auth/infrastructure/persistence/postgresql/PostgresqlRepository
+
+  # ------------  Login ------------- #
+  Contexts.auth.application.services.LoginService:
+    class: ../../../contexts/auth/application/services/LoginService
+    arguments: ["@Contexts.auth.domain.AuthRepository"]
+
+  Apps.auth.controllers.LoginCtrl:
+    class: ../controllers/LoginCtrl
+    arguments: ["@Contexts.auth.application.services.LoginService"]
+##imports:
+##  - {resource: ./apps/application.yaml}
