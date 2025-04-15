@@ -11,8 +11,8 @@ services:
       - 5432:5432
     volumes:
       - ./database_dev:/var/lib/postgresql/data
-    profiles:
-      - dev
+    #profiles:
+    #  - dev
 
   postgres_test:
     image: postgres:13
@@ -24,8 +24,8 @@ services:
       - POSTGRES_PASSWORD=${PG_PASSWORD}
     ports:
       - 5433:5432
-    profiles:
-      - test
+    #profiles:
+    #  - test
 
   pgadmin:
     image: dpage/pgadmin4

@@ -1,0 +1,225 @@
+openapi: 3.0.0
+info:
+  title: GLobal Chat API Documentation
+  description: Application of chat using technologies like web socket.
+  version: 1.0.0
+
+#servers:
+#  - url: /
+
+tags:
+  - name: auth
+    description: Access to the platform
+    externalDocs:
+      description: Access to the platform
+      #url: http://.io
+  - name: users
+    description: Everything about users service
+    externalDocs:
+      description: Everything about users service
+      #url: http://.io
+
+paths:
+  /login:
+    post:
+      tags:
+        - auth
+      summary: Authenticate user and initiate session
+      description: |
+        Authenticates a user using their email and password credentials.
+        If the login is successful, returns user details along with an access token and its expiration time.
+        This token should be used for authenticating subsequent requests to protected endpoints.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Registered user's email address
+                password:
+                  type: string
+                  minLength: 4
+                  description: User's password (minimum 4 characters)
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Successful login response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "123"
+                      name:
+                        type: string
+                        example: "Jane Doe"
+                      email:
+                        type: string
+                        format: email
+                        example: "jane@example.com"
+                    required:
+                      - id
+                      - name
+                      - email
+                  session:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      expiresAt:
+                        type: string
+                        format: date-time
+                        example: "2025-04-15T12:00:00Z"
+                    required:
+                      - accessToken
+                      - expiresAt
+                required:
+                  - user
+                  - session
+
+  /users:
+    get:
+      tags:
+        - users
+      summary: Get all users
+      description: Returns a list of all users in the system
+      responses:
+        "200":
+          description: Successful response with a list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+      security:
+        - BearerAuth: []
+
+    post:
+      tags:
+        - users
+      summary: Create a new user
+      description: Creates a new user in the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewUser"
+      responses:
+        "201":
+          description: Successful response with the created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+      security:
+        - BearerAuth: []
+
+  /users/{id}:
+    get:
+      tags:
+        - users
+      summary: Get a user by ID
+      description: Returns a user with the specified ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful response with the user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+      security:
+        - BearerAuth: []
+
+components:
+  schemas:
+    RequestLogin:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+      required:
+        - id
+        - name
+        - email
+
+    NewUser:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - password
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier (UUID) of the user
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          minLength: 1
+          description: Full name of the user
+          example: "Jane Doe"
+        email:
+          type: string
+          format: email
+          description: Email address of the user
+          example: "jane.doe@example.com"
+        password:
+          type: string
+          minLength: 4
+          description: Password (at least 4 characters)
+          example: "secure123"
+    User:
+      type: object
+      description: Data Transfer Object representing a user
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the user
+          example: "1a2b3c4d"
+        name:
+          type: string
+          description: Full name of the user
+          example: "Alice Smith"
+        email:
+          type: string
+          format: email
+          description: Email address of the user
+          example: "alice@example.com"
+      required:
+        - id
+        - name
+        - email
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -4,10 +4,13 @@ import cors from "cors";
 import errorhandler from "errorhandler";
 import express, { NextFunction, Request, Response } from "express";
 import Router from "express-promise-router";
+import fs from "fs";
 import helmet from "helmet";
 import * as http from "http";
 import status from "http-status";
 import { Server as SocketIOServer } from "socket.io";
+import swaggerUi from "swagger-ui-express";
+import YAML from "yaml";
 
 import { registerRoutes as registerRoutesAuth } from "./auth/routes";
 import { registerRoutes as registerRoutesChat } from "./chat/routes";
@@ -38,8 +41,17 @@ export class Server {
     registerRoutesChat(router);
     registerRoutesUsers(router);
     registerRoutesAuth(router);
-    // Error handling middleware (this is only enabled in development)
 
+    //Documentation:
+    const file = fs.readFileSync("./documentation.yaml", "utf8");
+    const swaggerDocument = YAML.parse(file);
+    this.express.use(
+      "/api-docs",
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerDocument)
+    );
+
+    // Error handling middleware (this is only enabled in development)
     if (process.env.NODE_ENV === "test") {
       this.express.use(errorhandler());
     }
