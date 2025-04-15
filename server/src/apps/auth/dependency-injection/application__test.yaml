@@ -13,12 +13,17 @@ services:
     class: ../../../contexts/auth/infrastructure/persistence/postgresql/PostgresqlRepository
 
   # ------------  Login ------------- #
+  Contexts.auth.application.useCases.FindUserByEmail:
+    class: ../../../contexts/auth/application/useCases/FindUserByEmail
+    arguments: ["@Contexts.auth.domain.AuthRepository"]
+
   Contexts.auth.application.services.LoginService:
     class: ../../../contexts/auth/application/services/LoginService
-    arguments: ["@Contexts.auth.domain.AuthRepository"]
+    arguments: ["@Contexts.auth.application.useCases.FindUserByEmail"]
 
   Apps.auth.controllers.LoginCtrl:
     class: ../controllers/LoginCtrl
     arguments: ["@Contexts.auth.application.services.LoginService"]
-##imports:
-##  - {resource: ./apps/application.yaml}
+
+  ##imports:
+  ##  - {resource: ./apps/application.yaml}

@@ -1,12 +1,12 @@
 import { Session } from "../../domain/entity/Session";
-import { IAuthRepository } from "../../domain/repository/IAuthRepository.rp";
 import { TokenFactory } from "../../infrastructure/tokens/TokenFactory";
 import { LoginResponseDTO } from "../dtos/LoginResponseDTO";
+import { FindUserByEmail } from "../useCases/FindUserByEmail";
 
 export class LoginService {
-  constructor(private readonly repository: IAuthRepository) {}
+  constructor(private readonly findUserByEmailUC: FindUserByEmail) {}
   async run({ email, password }: { email: string; password: string }) {
-    const user = await this.repository.findByEmail(email);
+    const user = await this.findUserByEmailUC.run(email);
     if (!user) throw new Error("User not found");
     if (user.password !== password) throw new Error("Password incorrect");
     const tokenFactory = new TokenFactory();
