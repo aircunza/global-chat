@@ -1,4 +1,4 @@
-import { Request, Response, Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 
 import { CreateUserCtrl } from "../controllers/CreateUserCtrl";
 import container from "../dependency-injection";
@@ -12,8 +12,8 @@ export function register(router: Router) {
   router.post(
     "/users",
     validateSchema(userSchema),
-    function (req: Request, res: Response) {
-      controller.run(req, res);
+    function (req: Request, res: Response, next: NextFunction) {
+      controller.run(req, res, next);
     }
   );
 }

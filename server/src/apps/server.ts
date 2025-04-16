@@ -15,8 +15,8 @@ import YAML from "yaml";
 import { registerRoutes as registerRoutesAuth } from "./auth/routes";
 import { registerRoutes as registerRoutesChat } from "./chat/routes";
 import { setupSocket } from "./chat/serverChat";
+import { errorsList } from "./shared/utils/errorsList";
 import { registerRoutes as registerRoutesUsers } from "./users/routes";
-import { errorsList } from "./users/utils/errorsList";
 
 export class Server {
   private readonly port: string;
@@ -61,6 +61,9 @@ export class Server {
         const errorFound = errorsList.find((e) => e.error === error.message);
         if (errorFound) {
           return res.status(errorFound.statusCode).json(errorFound.error);
+        }
+        if (process.env.NODE_ENV === "dev") {
+          console.error(error);
         }
         res.status(status.INTERNAL_SERVER_ERROR).send();
         next();
