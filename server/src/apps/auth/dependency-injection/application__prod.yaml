@@ -25,5 +25,27 @@ services:
     class: ../controllers/LoginCtrl
     arguments: ["@Contexts.auth.application.services.LoginService"]
 
+  # ------------  SignUp ------------- #
+
+  Contexts.auth.application.useCases.FindUserById:
+    class: ../../../contexts/auth/application/useCases/FindUserById
+    arguments: ["@Contexts.auth.domain.AuthRepository"]
+
+  Contexts.auth.application.useCases.SaveUser:
+    class: ../../../contexts/auth/application/useCases/SaveUser
+    arguments: ["@Contexts.auth.domain.AuthRepository"]
+
+  Contexts.auth.application.services.SignUpService:
+    class: ../../../contexts/auth/application/services/SignUpService
+    arguments:
+      [
+        "@Contexts.auth.application.useCases.SaveUser",
+        "@Contexts.auth.application.useCases.FindUserByEmail",
+        "@Contexts.auth.application.useCases.FindUserById",
+      ]
+  Apps.auth.controllers.SingUpCtrl:
+    class: ../controllers/SingUpCtrl
+    arguments: ["@Contexts.auth.application.services.SignUpService"]
+
   ##imports:
   ##  - {resource: ./apps/application.yaml}

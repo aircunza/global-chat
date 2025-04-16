@@ -88,6 +88,49 @@ paths:
                 required:
                   - user
                   - session
+        "404":
+          description: User not found
+        "401":
+          description: Password incorrect
+
+  /sign-up:
+    post:
+      tags:
+        - auth
+      summary: Register a new user account
+      description: |
+        Registers a new user using their name, email, and password.
+        Upon successful registration, returns the newly created user's details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: Successful response with the user
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Data Transfer Object representing a user
+                properties:
+                  id:
+                    type: string
+                    description: Unique identifier of the user
+                    example: "1a2b3c4d"
+                  name:
+                    type: string
+                    description: Full name of the user
+                    example: "Alice Smith"
+                  email:
+                    type: string
+                    format: email
+                    description: Email address of the user
+                    example: "alice@example.com"
+        "409":
+          description: Email already in use / User already exists
 
   /users:
     get:
@@ -103,7 +146,23 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/User"
+                  #$ref: "#/components/schemas/_UserResponse"
+                  type: object
+                  description: Data Transfer Object representing a user
+                  properties:
+                    id:
+                      type: string
+                      description: Unique identifier of the user
+                      example: "1a2b3c4d"
+                    name:
+                      type: string
+                      description: Full name of the user
+                      example: "Alice Smith"
+                    email:
+                      type: string
+                      format: email
+                      description: Email address of the user
+                      example: "alice@example.com"
       security:
         - BearerAuth: []
 
@@ -117,14 +176,31 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NewUser"
+              $ref: "#/components/schemas/User"
       responses:
         "201":
           description: Successful response with the created user
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                type: object
+                description: Data Transfer Object representing a user
+                properties:
+                  id:
+                    type: string
+                    description: Unique identifier of the user
+                    example: "1a2b3c4d"
+                  name:
+                    type: string
+                    description: Full name of the user
+                    example: "Alice Smith"
+                  email:
+                    type: string
+                    format: email
+                    description: Email address of the user
+                    example: "alice@example.com"
+        "409":
+          description: Email already in use / User already exists
       security:
         - BearerAuth: []
 
@@ -147,29 +223,30 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                type: object
+                description: Data Transfer Object representing a user
+                properties:
+                  id:
+                    type: string
+                    description: Unique identifier of the user
+                    example: "1a2b3c4d"
+                  name:
+                    type: string
+                    description: Full name of the user
+                    example: "Alice Smith"
+                  email:
+                    type: string
+                    format: email
+                    description: Email address of the user
+                    example: "alice@example.com"
+        "404":
+          description: User not found
       security:
         - BearerAuth: []
 
 components:
   schemas:
-    RequestLogin:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        email:
-          type: string
-          format: email
-      required:
-        - id
-        - name
-        - email
-
-    NewUser:
+    User:
       type: object
       required:
         - id
@@ -197,27 +274,7 @@ components:
           minLength: 4
           description: Password (at least 4 characters)
           example: "secure123"
-    User:
-      type: object
-      description: Data Transfer Object representing a user
-      properties:
-        id:
-          type: string
-          description: Unique identifier of the user
-          example: "1a2b3c4d"
-        name:
-          type: string
-          description: Full name of the user
-          example: "Alice Smith"
-        email:
-          type: string
-          format: email
-          description: Email address of the user
-          example: "alice@example.com"
-      required:
-        - id
-        - name
-        - email
+
   securitySchemes:
     BearerAuth:
       type: http

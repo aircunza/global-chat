@@ -19,4 +19,12 @@ export const errorsList = [
     error: "Token corrupted",
     statusCode: 498,
   },
+  {
+    error: "Token corrupted",
+    statusCode: 498,
+  },
+  {
+    error: "User already exists",
+    statusCode: 409,
+  },
 ];
