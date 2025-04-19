@@ -13,6 +13,8 @@ import { downSeedAuth, upSeedAuth } from "./auth.seed";
 describe("Test for /auth paths", function () {
   let application: AppBackend;
   let _response: request.Response;
+  let rawCookies = "";
+  let accessTokenCookie = "";
 
   /**
    * Setup: start the application and seed the auth database
@@ -94,6 +96,19 @@ describe("Test for /auth paths", function () {
         .post("/login")
         .send(inputData);
 
+      rawCookies = _response.headers["set-cookie"];
+
+      // Extract access token from cookies
+      if (Array.isArray(rawCookies)) {
+        accessTokenCookie = rawCookies.find((cookie: string) =>
+          cookie.startsWith("accessToken=")
+        );
+      } else if (typeof rawCookies === "string") {
+        if (rawCookies.startsWith("accessToken=")) {
+          accessTokenCookie = rawCookies;
+        }
+      }
+
       expect(_response.statusCode).toBe(200);
       expect(_response.body.session.accessToken).toBeTruthy();
       expect(_response.body.user.email).toEqual(inputData.email);
@@ -126,6 +141,39 @@ describe("Test for /auth paths", function () {
         .send(wrongData);
 
       expect(_response.statusCode).toBe(404);
+    });
+  });
+
+  /**
+   * Tests for token verification via GET /verify
+   * Uses the accessToken stored in an HTTP-only cookie after login
+   */
+  describe("GET /verify", function () {
+    test("Should return status code 200", async function () {
+      /**
+       * This test simulates a request with a valid session cookie.
+       * It should successfully validate the token and return 200.
+       */
+      const res = await request(application.httpServer)
+        .get("/verify")
+        .set("Cookie", accessTokenCookie);
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    test("Should return status code 498, Invalid Token", async function () {
+      /**
+       * This test simulates a request with an invalid token in the cookie.
+       * The server should detect the invalid JWT and return a 498 status.
+       */
+      const invalidTokenCookie =
+        "accessToken=INVALID.TOKEN.VALUE; Path=/; HttpOnly; SameSite=Strict";
+
+      const res = await request(application.httpServer)
+        .get("/verify")
+        .set("Cookie", invalidTokenCookie);
+
+      expect(res.statusCode).toBe(498);
     });
   });
 
