@@ -178,14 +178,14 @@ describe("Test for /auth paths", function () {
   });
 
   /**
-   * Tests for logout functionality via GET /logout
+   * Tests for logout functionality via POST /logout
    * Ensures that accessToken is cleared properly and response is correct
    */
-  describe("GET /logout", () => {
+  describe("POST /logout", () => {
     test("Should successfully log out: return 200, message, and clear accessToken cookie", async () => {
-      // Send a GET request to /logout with a simulated valid cookie
+      // Send a POST request to /logout with a simulated valid cookie
       const response = await request(application.httpServer)
-        .get("/logout")
+        .post("/logout")
         .set("Cookie", accessTokenCookie);
 
       // Expect HTTP 200 OK
@@ -223,7 +223,7 @@ describe("Test for /auth paths", function () {
 
     test("Should handle logout even if no accessToken cookie is sent", async () => {
       // Send a GET request to /logout without any cookies
-      const response = await request(application.httpServer).get("/logout");
+      const response = await request(application.httpServer).post("/logout");
 
       // Expect HTTP 200 OK
       expect(response.statusCode).toBe(200);
