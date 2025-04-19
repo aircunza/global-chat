@@ -47,5 +47,15 @@ services:
     class: ../controllers/SingUpCtrl
     arguments: ["@Contexts.auth.application.services.SignUpService"]
 
+  # ------------  Verify ------------- #
+
+  Contexts.auth.application.services.VerifyService:
+    class: ../../../contexts/auth/application/services/VerifyService
+    arguments: ["@Contexts.auth.application.useCases.FindUserById"]
+
+  Apps.auth.controllers.VerifyCtrl:
+    class: ../controllers/VerifyCtrl
+    arguments: ["@Contexts.auth.application.services.VerifyService"]
+
   ##imports:
   ##  - {resource: ./apps/application.yaml}

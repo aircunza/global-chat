@@ -9,10 +9,10 @@ export class SingUpCtrl {
     try {
       const user = req.body;
       const newUser = new User({
-        id: req.body.id,
-        name: req.body.name,
-        email: req.body.email,
-        password: req.body.password,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        password: user.password,
       });
       const result = await this.service.run(newUser);
       res.status(201).send(result);

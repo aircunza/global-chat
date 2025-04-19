@@ -1,4 +1,3 @@
-// user.dto.ts
 interface IUserDto {
   id: string;
   name: string;

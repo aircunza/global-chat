@@ -10,6 +10,12 @@ export class LoginCtrl {
     const { email, password } = req.body;
     try {
       const result = await this.service.run({ email, password });
+
+      res.cookie("accessToken", result.session.accessToken, {
+        httpOnly: true, // Protects against XSS
+        secure: false, // "true" for Only sent over HTTPS (recommended in production)
+        sameSite: "strict", // Controls sending in cross-site requests
+      });
       res.status(httpStatus.OK).send(result);
     } catch (e) {
       next(e);

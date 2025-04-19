@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 
+import { authGuard } from "../../../contexts/auth/infrastructure/middleware/AuthGuar";
 import { CreateUserCtrl } from "../controllers/CreateUserCtrl";
 import container from "../dependency-injection";
 import { validateSchema } from "../middleware/ValidateSchema";
@@ -11,6 +12,7 @@ export function register(router: Router) {
   );
   router.post(
     "/users",
+    authGuard,
     validateSchema(userSchema),
     function (req: Request, res: Response, next: NextFunction) {
       controller.run(req, res, next);
