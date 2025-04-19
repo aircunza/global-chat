@@ -1,25 +1,59 @@
 openapi: 3.0.0
 info:
   title: GLobal Chat API Documentation
-  description: Application of chat using technologies like web socket.
-  version: 1.0.0
+  description: |
+    Chat application using technologies like WebSocket.
 
-#servers:
-#  - url: /
+    ⚠️ **Note:** All routes in this API are protected using an `accessToken` sent as an `HttpOnly` cookie, which must be present in every authenticated request.
+    The only exceptions to this rule are the `/login` and `/sign-up` routes, which are publicly accessible to allow user registration and login.
+  version: 1.0.0
 
 tags:
   - name: auth
     description: Access to the platform
-    externalDocs:
-      description: Access to the platform
-      #url: http://.io
   - name: users
     description: Everything about users service
-    externalDocs:
-      description: Everything about users service
-      #url: http://.io
 
 paths:
+  /sign-up:
+    post:
+      tags:
+        - auth
+      summary: Register a new user account
+      description: |
+        Registers a new user using their name, email, and password.
+        Upon successful registration, returns the newly created user's details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: Successful response with the user
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Data Transfer Object representing a user
+                properties:
+                  id:
+                    type: string
+                    description: Unique identifier of the user
+                    example: "1a2b3c4d"
+                  name:
+                    type: string
+                    description: Full name of the user
+                    example: "Alice Smith"
+                  email:
+                    type: string
+                    format: email
+                    description: Email address of the user
+                    example: "alice@example.com"
+        "409":
+          description: Email already in use / User already exists
+
   /login:
     post:
       tags:
@@ -50,6 +84,11 @@ paths:
       responses:
         "200":
           description: Successful login response
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly
           content:
             application/json:
               schema:
@@ -93,44 +132,81 @@ paths:
         "401":
           description: Password incorrect
 
-  /sign-up:
-    post:
+  /verify:
+    get:
       tags:
         - auth
-      summary: Register a new user account
+      summary: Verify the user's session and authentication status
       description: |
-        Registers a new user using their name, email, and password.
-        Upon successful registration, returns the newly created user's details.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/User"
+        This endpoint verifies if the user is still authenticated by checking their `accessToken`
+        in the cookies. The response will confirm whether the user is still logged in based on the 
+        validity of the session. A valid session returns the user's information and the expiration 
+        of their session.
       responses:
         "200":
-          description: Successful response with the user
+          description: Successful response with the user's session status
           content:
             application/json:
               schema:
                 type: object
-                description: Data Transfer Object representing a user
                 properties:
-                  id:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "123"
+                      name:
+                        type: string
+                        example: "Jane Doe"
+                      email:
+                        type: string
+                        format: email
+                        example: "jane@example.com"
+                    required:
+                      - id
+                      - name
+                      - email
+                  session:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      expiresAt:
+                        type: string
+                        format: date-time
+                        example: "2025-04-15T12:00:00Z"
+                    required:
+                      - accessToken
+                      - expiresAt
+                required:
+                  - user
+                  - session
+        "401":
+          description: Missing or invalid token in cookies
+        "498":
+          description: Token corrupted or invalid
+        "404":
+          description: User not found
+
+  /logout:
+    post:
+      summary: Log the user out
+      description: Clears the session cookie (`accessToken`)
+      tags:
+        - auth
+      responses:
+        "200":
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
                     type: string
-                    description: Unique identifier of the user
-                    example: "1a2b3c4d"
-                  name:
-                    type: string
-                    description: Full name of the user
-                    example: "Alice Smith"
-                  email:
-                    type: string
-                    format: email
-                    description: Email address of the user
-                    example: "alice@example.com"
-        "409":
-          description: Email already in use / User already exists
+                    example: Logged out successfully
 
   /users:
     get:
@@ -146,7 +222,6 @@ paths:
               schema:
                 type: array
                 items:
-                  #$ref: "#/components/schemas/_UserResponse"
                   type: object
                   description: Data Transfer Object representing a user
                   properties:
@@ -163,8 +238,6 @@ paths:
                       format: email
                       description: Email address of the user
                       example: "alice@example.com"
-      security:
-        - BearerAuth: []
 
     post:
       tags:
@@ -201,8 +274,6 @@ paths:
                     example: "alice@example.com"
         "409":
           description: Email already in use / User already exists
-      security:
-        - BearerAuth: []
 
   /users/{id}:
     get:
@@ -241,8 +312,6 @@ paths:
                     example: "alice@example.com"
         "404":
           description: User not found
-      security:
-        - BearerAuth: []
 
 components:
   schemas:
@@ -274,9 +343,3 @@ components:
           minLength: 4
           description: Password (at least 4 characters)
           example: "secure123"
-
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
