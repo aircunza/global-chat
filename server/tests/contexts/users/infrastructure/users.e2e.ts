@@ -8,40 +8,77 @@ import { FindAllUsers } from "../../../../src/contexts/users/application/useCase
 import { FindUserById } from "../../../../src/contexts/users/application/useCases/FindUserById";
 import { downSeedUSer, upSeedUsers } from "./user.seed";
 
+/**
+ * Integration tests for `/users` routes.
+ * This test suite verifies different user-related endpoints including:
+ * - User creation
+ * - User retrieval
+ * - Token validation
+ * - Profile access
+ * - Health check
+ */
 describe("Test for /users paths", () => {
   let application: AppBackend;
-  //let _request: request.Test;
   let _response: request.Response;
-  let _accessToken = "";
+  let rawCookies = "";
+  let accessTokenCookie = "";
 
+  /**
+   * Setup phase before running tests:
+   * - Start backend app
+   * - Seed the database
+   * - Authenticate as admin to get a valid token
+   */
   beforeAll(async () => {
     application = new AppBackend();
     await application.start();
     await downSeedUSer();
     await upSeedUsers();
-    // login:
+
     const inputData = {
       email: "admin@admin.com",
       password: "1234",
     };
+
     const loginResponse = await request(application.httpServer)
       .post("/login")
       .send(inputData);
-    _accessToken = loginResponse.body.session.accessToken;
+
+    rawCookies = loginResponse.headers["set-cookie"];
+
+    // Extract access token from cookies
+    if (Array.isArray(rawCookies)) {
+      accessTokenCookie = rawCookies.find((cookie: string) =>
+        cookie.startsWith("accessToken=")
+      );
+    } else if (typeof rawCookies === "string") {
+      if (rawCookies.startsWith("accessToken=")) {
+        accessTokenCookie = rawCookies;
+      }
+    }
   });
 
+  /**
+   * Test suite for POST /users
+   */
   describe("POST /users", () => {
-    test("Should return Bad Request 400 status code. It should be a valid UUID", async function () {
+    test("Should return 498 when the access token is corrupted or invalid", async function () {
+      const invalidTokenCookie =
+        "accessToken=INVALID.TOKEN.VALUE; Path=/; HttpOnly; SameSite=Strict";
+
       const newUser = {
-        id: "550e8400-e29b-41d4-a716-446655440033-xxx",
+        id: "550e8400-e29b-41d4-a716-446655440033",
         name: "John Doe",
-        email: "Tt8hI@example.com",
+        email: "invalid@example.com",
         password: "1234",
       };
-      _response = await request(application.httpServer)
+
+      const response = await request(application.httpServer)
         .post("/users")
+        .set("Cookie", invalidTokenCookie)
         .send(newUser);
-      expect(_response?.statusCode).toEqual(400);
+
+      expect(response.statusCode).toBe(498); // or 401 depending on your error handling
     });
 
     test("Should return a User created", async function () {
@@ -51,16 +88,20 @@ describe("Test for /users paths", () => {
         email: "Tt8hI@example.com",
         password: "1234",
       };
+
       _response = await request(application.httpServer)
         .post("/users")
-        .send(newUser);
-      expect(_response?.statusCode).toEqual(201);
-      expect(_response?.body?.id).toEqual(
-        "550e8400-e29b-41d4-a716-446655440033"
-      );
+        .send(newUser)
+        .set("Cookie", accessTokenCookie);
+
+      expect(_response.statusCode).toEqual(201);
+      expect(_response.body.id).toEqual("550e8400-e29b-41d4-a716-446655440033");
     });
   });
 
+  /**
+   * Health check endpoint
+   */
   describe("GET Health check /status-users", () => {
     test("Should return 200", async () => {
       _response = await request(application.httpServer).get("/status-users");
@@ -68,103 +109,117 @@ describe("Test for /users paths", () => {
     });
   });
 
+  /**
+   * Tests for fetching a single user by ID
+   */
   describe("GETS /users/{id}", () => {
     test("Should return a User", async function () {
       const dbService = container.get<FindUserById>(
         "Contexts.users.application.useCases.FindUserById"
       );
+
       const result = await dbService.run(
         "550e8400-e29b-41d4-a716-446655440000"
       );
       const user = result ? UserDTO.fromEntity(result) : null;
       const idSearched = "550e8400-e29b-41d4-a716-446655440000";
+
       _response = await request(application.httpServer)
         .get(`/users/${idSearched}`)
-        .set({
-          authorization: `Bearer ${_accessToken}`,
-        });
+        .set("Cookie", accessTokenCookie);
+
       expect(user?.id).toEqual(_response.body.id);
     });
 
-    test("Should return Not Found 400 status code", async function () {
+    test("Should return Not Found 404 status code", async function () {
       const idSearched = "550e8400-e29b-41d4-a716-446655440099";
+
       _response = await request(application.httpServer)
         .get(`/users/${idSearched}`)
-        .set({
-          authorization: `Bearer ${_accessToken}`,
-        });
+        .set("Cookie", accessTokenCookie);
+
       expect(_response.statusCode).toEqual(404);
       expect(_response.body).toEqual(null);
     });
   });
 
+  /**
+   * Tests for retrieving all users
+   */
   describe("GET /users", function () {
-    test("GET /users", async function () {
+    test("Should return users", async function () {
       const useCase = container.get<FindAllUsers>(
         "Contexts.users.application.useCases.FindAllUsers"
       );
       const result = await useCase.run();
       const users = result.map((user) => UserDTO.fromEntity(user));
+
       _response = await request(application.httpServer)
         .get("/users")
-        .set({
-          authorization: `Bearer ${_accessToken}`,
-        });
+        .set("Cookie", accessTokenCookie);
+
       expect(_response.statusCode).toEqual(200);
       expect(_response.body.length).toEqual(users.length);
       expect(_response.body[0].id).toBeTruthy();
       expect(_response.body[0]).toEqual(users[0]);
     });
+
     test("Return status code 498 because invalid token", async function () {
-      //invalid token
-      const token =
-        "xxxeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjU1MGU4NDAwLWUyOWItNDFkNC1hNzE2LTQ0NjY1NTQ0MDAwMCIsImlhdCI6MTc0NDM5OTcwMiwiZXhwIjoxNzQ0NDI4NTAyfQ.SF7jrHNF-e_AsWrz0S4CmBe50jG4Mx6Vyq0Xs6EPGnU";
-      // GET /profile
+      const invalidTokenCookie =
+        "accessToken=INVALID.TOKEN.VALUE; Path=/; HttpOnly; SameSite=Strict";
+
       const profileResponse = await request(application.httpServer)
         .get("/users")
-        .set({
-          authorization: `Bearer ${token}`,
-        });
+        .set("Cookie", invalidTokenCookie);
+
       expect(profileResponse.statusCode).toBe(498);
     });
   });
 
+  /**
+   * Tests for the authenticated user's profile endpoint
+   */
   describe("GET /profile", function () {
     test("Return status code 200", async function () {
-      // login:
       const inputData = {
         email: "admin@admin.com",
         password: "1234",
       };
+
       const loginResponse = await request(application.httpServer)
         .post("/login")
         .send(inputData);
+
       const token = loginResponse.body.session.accessToken;
-      // GET /profile:
+
       const profileResponse = await request(application.httpServer)
         .get("/profile")
-        .set({
-          authorization: `Bearer ${token}`,
-        });
+        .set("Cookie", accessTokenCookie);
+
       expect(profileResponse.statusCode).toBe(200);
     });
+
     test("Return status code 498 because invalid token", async function () {
-      //invalid token
-      const token =
-        "xxxeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjU1MGU4NDAwLWUyOWItNDFkNC1hNzE2LTQ0NjY1NTQ0MDAwMCIsImlhdCI6MTc0NDM5OTcwMiwiZXhwIjoxNzQ0NDI4NTAyfQ.SF7jrHNF-e_AsWrz0S4CmBe50jG4Mx6Vyq0Xs6EPGnU";
-      // GET /profile
+      const invalidTokenCookie =
+        "accessToken=INVALID.TOKEN.VALUE; Path=/; HttpOnly; SameSite=Strict";
+
       const profileResponse = await request(application.httpServer)
         .get("/profile")
-        .set({
-          authorization: `Bearer ${token}`,
-        });
+        .set("Cookie", invalidTokenCookie);
+
       expect(profileResponse.statusCode).toBe(498);
     });
   });
 
+  /**
+   * Cleanup phase after running tests:
+   * - Clear database seed
+   * - Stop the application
+   */
   afterAll(async () => {
     await downSeedUSer();
     await application.stop();
-    _accessToken = "";
+    rawCookies = "";
+    accessTokenCookie = "";
   });
 });

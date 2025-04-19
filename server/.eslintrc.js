@@ -4,6 +4,7 @@ module.exports = {
     browser: true,
     node: true,
   },
+  ignorePatterns: ["dist/*", "node_modules/*"],
   parser: "@typescript-eslint/parser",
   extends: [
     "eslint:recommended",

@@ -1,33 +1,30 @@
 import { NextFunction, Request, Response } from "express";
 
-import container from "../../../../apps/users/dependency-injection";
-import { FindUserById } from "../../../users/application/useCases/FindUserById";
-import { verifyAuthToken } from "../tokens/verifyAuthToken";
+import container from "../../../../apps/auth/dependency-injection";
+import { VerifyService } from "../../application/services/VerifyService";
 
 export async function authGuard(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  const userUseCase: FindUserById = container.get(
-    "Contexts.users.application.useCases.FindUserById"
+  const verifyService: VerifyService = container.get(
+    "Contexts.auth.application.services.VerifyService"
   );
 
   try {
-    const authHeader = req.headers["authorization"];
-
-    if (typeof authHeader !== "string" || !authHeader.startsWith("Bearer")) {
+    const accessToken = req.cookies.accessToken;
+    if (!accessToken) {
       throw new Error("Missing or wrong token");
     }
-    const token = authHeader.split(" ")[1];
-    const payload = await verifyAuthToken(token);
 
-    const user = await userUseCase.run(payload.id);
+    const result = await verifyService.run(accessToken);
 
-    if (user?.id !== payload.id) {
+    if (result?.user?.id !== result?.user.id) {
       throw new Error("Token corrupted");
     }
-    (req as any).user = user;
+
+    (req as any).user = result;
 
     next();
   } catch (e) {

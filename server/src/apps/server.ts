@@ -1,5 +1,6 @@
 import bodyParser from "body-parser";
 import compress from "compression";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import errorhandler from "errorhandler";
 import express, { NextFunction, Request, Response } from "express";
@@ -15,6 +16,7 @@ import YAML from "yaml";
 import { registerRoutes as registerRoutesAuth } from "./auth/routes";
 import { registerRoutes as registerRoutesChat } from "./chat/routes";
 import { setupSocket } from "./chat/serverChat";
+import { configApps } from "./config";
 import { errorsList } from "./shared/utils/errorsList";
 import { registerRoutes as registerRoutesUsers } from "./users/routes";
 
@@ -35,8 +37,15 @@ export class Server {
     this.express.use(helmet.hidePoweredBy());
     this.express.use(helmet.frameguard({ action: "deny" }));
     this.express.use(compress());
+    this.express.use(cookieParser());
     const router = Router();
-    router.use(cors({ origin: "*" }));
+    router.use(
+      cors({
+        origin: [configApps.urlClient1, configApps.urlClient2],
+
+        credentials: true,
+      })
+    );
     this.express.use(router);
     registerRoutesChat(router);
     registerRoutesUsers(router);
@@ -48,13 +57,23 @@ export class Server {
     this.express.use(
       "/api-docs",
       swaggerUi.serve,
-      swaggerUi.setup(swaggerDocument)
+      swaggerUi.setup(swaggerDocument, {
+        swaggerOptions: {
+          persistAuthorization: true, // This allows authentication to be maintained
+          requestInterceptor: (req: any) => {
+            // to ensure that cookies are sent with requests
+            req.credentials = "include"; // Include cookies in requests
+            return req;
+          },
+        },
+      })
     );
 
     // Error handling middleware (this is only enabled in development)
     if (process.env.NODE_ENV === "test") {
       this.express.use(errorhandler());
     }
+
     // Error handling middleware for production
     router.use(
       (error: Error, req: Request, res: Response, next: NextFunction) => {
@@ -97,7 +116,8 @@ export class Server {
   private setUpSocketIo(server: http.Server) {
     const io = new SocketIOServer(server, {
       cors: {
-        origin: "*",
+        origin: [configApps.urlClient1, configApps.urlClient2],
+        credentials: true,
       },
     });
     setupSocket(io); // Setup socket events

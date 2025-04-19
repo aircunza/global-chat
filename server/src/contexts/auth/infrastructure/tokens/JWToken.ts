@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 import { configApps } from "../../../../apps/config";
 import {
@@ -14,11 +14,17 @@ export class JWTToken extends TokenHandler {
   }
 
   async generateToken(payload: AuthTokenPayload) {
-    const result = await jwt.sign(payload, this.secretKey, {
-      expiresIn: "8h",
-    });
-    return result;
+    try {
+      const token = await jwt.sign(payload, this.secretKey, {
+        expiresIn: "24h",
+      });
+      const decoded = jwt.decode(token) as JwtPayload;
+      return { token, exp: decoded.exp, iat: decoded.iat };
+    } catch (e) {
+      return null;
+    }
   }
+
   async verifyToken(token: string): Promise<AuthTokenPayload | undefined> {
     try {
       const result = await jwt.verify(token, this.secretKey);

@@ -1,13 +1,12 @@
-import { AuthTokenPayload } from "../../domain/entity/TokenHandler";
+import { JwtPayload } from "jsonwebtoken";
+
 import { TokenFactory } from "./TokenFactory";
 
-export async function verifyAuthToken(
-  token: string
-): Promise<AuthTokenPayload> {
+export async function verifyAuthToken(token: string): Promise<JwtPayload> {
   try {
     const tokenFactory = new TokenFactory();
     const tokenHandler = tokenFactory.createToken("JWT");
-    const payload = (await tokenHandler.verifyToken(token)) as AuthTokenPayload;
+    const payload = (await tokenHandler.verifyToken(token)) as JwtPayload;
     return payload;
   } catch (e) {
     if (e instanceof Error) {
