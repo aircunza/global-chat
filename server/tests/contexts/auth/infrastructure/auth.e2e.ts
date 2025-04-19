@@ -178,6 +178,77 @@ describe("Test for /auth paths", function () {
   });
 
   /**
+   * Tests for logout functionality via GET /logout
+   * Ensures that accessToken is cleared properly and response is correct
+   */
+  describe("GET /logout", () => {
+    test("Should successfully log out: return 200, message, and clear accessToken cookie", async () => {
+      // Send a GET request to /logout with a simulated valid cookie
+      const response = await request(application.httpServer)
+        .get("/logout")
+        .set("Cookie", accessTokenCookie);
+
+      // Expect HTTP 200 OK
+      expect(response.statusCode).toBe(200);
+
+      // Expect a standard logout response body
+      expect(response.body).toEqual({ message: "Log out" });
+
+      // Get the Set-Cookie header that should clear the accessToken
+      const setCookieHeader = response.headers["set-cookie"];
+      expect(setCookieHeader).toBeDefined();
+
+      // Normalize to array to safely use array methods (in case it's a string)
+      const cookiesArray = Array.isArray(setCookieHeader)
+        ? setCookieHeader
+        : [setCookieHeader];
+
+      // Look for a cookie that clears the accessToken (should start with "accessToken=;")
+      const clearedCookie = cookiesArray.find((cookie: string) =>
+        cookie.startsWith("accessToken=;")
+      );
+
+      // Check that the cookie to clear accessToken was sent
+      expect(clearedCookie).toBeTruthy();
+
+      // Ensure HttpOnly flag is present for security
+      expect(clearedCookie).toMatch(/HttpOnly/i);
+
+      // Ensure the cookie is scoped to root path
+      expect(clearedCookie).toMatch(/Path=\//i);
+
+      // Ensure SameSite=Strict is enforced
+      expect(clearedCookie).toMatch(/SameSite=Strict/i);
+    });
+
+    test("Should handle logout even if no accessToken cookie is sent", async () => {
+      // Send a GET request to /logout without any cookies
+      const response = await request(application.httpServer).get("/logout");
+
+      // Expect HTTP 200 OK
+      expect(response.statusCode).toBe(200);
+
+      // Expect a standard logout message
+      expect(response.body).toEqual({ message: "Log out" });
+
+      // Get the Set-Cookie header to check if the cookie is still cleared
+      const setCookieHeader = response.headers["set-cookie"];
+      expect(setCookieHeader).toBeDefined();
+
+      const cookiesArray = Array.isArray(setCookieHeader)
+        ? setCookieHeader
+        : [setCookieHeader];
+
+      // Expect that accessToken cookie is still being cleared even if it didn't exist
+      const clearedCookie = cookiesArray.find((cookie: string) =>
+        cookie.startsWith("accessToken=;")
+      );
+
+      expect(clearedCookie).toBeTruthy();
+    });
+  });
+
+  /**
    * Cleanup: reset DB and stop the app
    */
   afterAll(async function () {
