@@ -1,44 +1,26 @@
-import  { io } from 'socket.io-client'
-import { use, useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import { useAuth } from './hooks/auth'
-function App() {
-  const [count, setCount] = useState(0)
-const { loginAuth } = useAuth()
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import ChatRoom from "./pages/ChatRoom";
+import AuthGuard from "./auth/AuthGuard";
+import Unauthorized from "./pages/Unauthorized";
+import Signup from "./pages/Signup";
 
-
-const socket = io("http://localhost:3001");
-
-
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <button onClick={() => loginAuth()}>
-          fetch {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Routes>
+      <Route path="/" element={<Navigate to="/home" replace />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/sign-up" element={<Signup />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route path="/chat" element={<ChatRoom />} />
+      <Route element={<AuthGuard />}>
+        <Route path="/home" element={<Home />} />
+      </Route>
 
-export default App
+      <Route element={<AuthGuard allowedRoles={["admin"]} />}>
+        <Route path="/admin" element={<div>Admin Page</div>} />
+      </Route>
+    </Routes>
+  );
+}

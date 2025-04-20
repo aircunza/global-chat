@@ -1,0 +1,120 @@
+.loginContainer {
+  /* Already has flex styles, keep those */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  /* Add this line to horizontally center itself */
+  margin: 0 auto;
+
+  /* Other existing styles */
+  width: 100%;
+  max-width: 600px; /* Prevent it from stretching too wide */
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+.welcomeTitle {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+}
+
+.loginForm {
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.468);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box; /* Make sure padding doesn’t overflow */
+  background-color: #1e1e1e00; /* Optional: add background to make it visible */
+
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.submitButton {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.submitButton:hover {
+  background-color: #45a049;
+}
+
+.error {
+  color: red;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.signupLink {
+  color: gray;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .welcomeTitle {
+    font-size: 1.5rem;
+  }
+
+  .loginForm {
+    padding: 20px;
+    width: 100%;
+  }
+
+  .input {
+    font-size: 0.95rem;
+  }
+
+  .submitButton {
+    padding: 10px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcomeTitle {
+    font-size: 1.25rem;
+  }
+
+  .submitButton {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .input {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .loginForm {
+    padding: 15px;
+    width: 100%;
+  }
+}
