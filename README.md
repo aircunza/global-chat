@@ -15,7 +15,12 @@ The **Global Chat API** provides real-time communication features using **WebSoc
 
 Watch the app in action! Below are demo videos showcasing the main functionalities of the Global Chat App:
 
-- 🔐 [Sign-Up Demo](#) — Register a new user
+- 🔐 [Sign-Up Demo](#) — Register a new user:
+  
+
+https://github.com/user-attachments/assets/a914783b-1132-4427-83ca-7371c12e0c42
+
+
 - 🔑 [Login Demo](#) — Authenticate and enter the platform
 - 🏠 [Create Room Demo](#) — Create a new chat room
 - 💬 [Chat Demo](#) — Real-time messaging between users
