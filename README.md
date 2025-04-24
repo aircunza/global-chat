@@ -17,13 +17,17 @@ Watch the app in action! Below are demo videos showcasing the main functionaliti
 
 - 🔐 [Sign-Up Demo](#) — Register a new user:
   
+  <img src="https://github.com/user-attachments/assets/7f4afc27-5abb-452c-a036-74bb84d41be5" width="200" alt="signup">
 
-https://github.com/user-attachments/assets/a914783b-1132-4427-83ca-7371c12e0c42
+- 🔑 [Login Demo](#) — Authenticate and enter the platform:
+
+  <img src="https://github.com/user-attachments/assets/a9c6f1eb-739f-4384-ae49-4bb264c08e72" width="200" alt="login">
 
 
-- 🔑 [Login Demo](#) — Authenticate and enter the platform
-- 🏠 [Create Room Demo](#) — Create a new chat room
-- 💬 [Chat Demo](#) — Real-time messaging between users
+- 💬 [Create Room and messaging Demo](#) — Create a new chat room and real-time messaging between users:
+  
+  <img src="https://github.com/user-attachments/assets/f2b34ab3-c156-4ca9-973e-5225be1ff5d1" width="400" alt="messaging">
+
 
 ---
 
