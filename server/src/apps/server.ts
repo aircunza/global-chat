@@ -14,8 +14,7 @@ import swaggerUi from "swagger-ui-express";
 import YAML from "yaml";
 
 import { registerRoutes as registerRoutesAuth } from "./auth/routes";
-import { registerRoutes as registerRoutesChat } from "./chat/routes";
-import { setupSocket } from "./chat/serverChat";
+import { setupSocket } from "./chat/socketServer";
 import { configApps } from "./config";
 import { errorsList } from "./shared/utils/errorsList";
 import { registerRoutes as registerRoutesUsers } from "./users/routes";
@@ -41,13 +40,12 @@ export class Server {
     const router = Router();
     router.use(
       cors({
-        origin: [configApps.urlClient1, configApps.urlClient2],
+        origin: configApps.urlClients,
 
         credentials: true,
       })
     );
     this.express.use(router);
-    registerRoutesChat(router);
     registerRoutesUsers(router);
     registerRoutesAuth(router);
 
@@ -106,9 +104,9 @@ export class Server {
 
   private startServer(server: http.Server) {
     server.listen(this.port, () => {
-      console.log(`✅ Server running on port ${this.port}`);
+      console.log(`Server running on port ${this.port}`);
       if (this.addSocketIo) {
-        console.log("✅ Socket.IO is enabled");
+        console.log("Socket.IO is enabled");
       }
     });
   }
@@ -116,7 +114,7 @@ export class Server {
   private setUpSocketIo(server: http.Server) {
     const io = new SocketIOServer(server, {
       cors: {
-        origin: [configApps.urlClient1, configApps.urlClient2],
+        origin: configApps.urlClients,
         credentials: true,
       },
     });
