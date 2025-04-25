@@ -2,10 +2,18 @@ openapi: 3.0.0
 info:
   title: GLobal Chat API Documentation
   description: |
-    Chat application using technologies like WebSocket.
+    Chat application using technologies like WebSocket and Socket.io.
 
-    ⚠️ **Note:** All routes in this API are protected using an `accessToken` sent as an `HttpOnly` cookie, which must be present in every authenticated request.
-    The only exceptions to this rule are the `/login` and `/sign-up` routes, which are publicly accessible to allow user registration and login.
+    ⚠️ **Note:** All routes in this API are protected using an `accessToken` sent as an `HttpOnly` cookie, which must be present in every authenticated request. The only exceptions to this rule are the `/login` and `/sign-up` routes, which are publicly accessible to allow user registration and login.
+
+    **Important:**
+    - The **chat-related events** (such as joining rooms, sending messages, disconnecting, etc.) are implemented using **WebSocket** and **Socket.io**. These events cannot be tested directly via Swagger, as Swagger only supports testing REST APIs. To test these events, you need to run the application and use the commands specified in the README for running tests or manually interacting with the WebSocket server.
+    - The **auth** and **user** routes, on the other hand, are standard **API REST** routes and can be tested directly via Swagger as usual.
+
+    **Data Storage:**
+    - For the **auth** and **user** routes, a **test database** is used to persist user data, allowing you to test the user registration, login, and other related functionalities with real data storage.
+    - For the **chat-related events** (such as creating rooms, sending messages, etc.), the data is stored **only in memory**. This means that chat rooms and messages are temporary and will be lost when the server is restarted. No permanent storage is used for chat-related data.
+
   version: 1.0.0
 
 tags:
@@ -13,6 +21,10 @@ tags:
     description: Access to the platform
   - name: users
     description: Everything about users service
+  - name: chat
+    description: |
+      Real-time chat functionality using Socket.io.
+      **Important:** Since this API uses WebSocket and Socket.io for real-time communication, these events cannot be tested directly via Swagger. To test the events, you need to run the application and use the commands specified in the README for running tests or manually interacting with the WebSocket server.
 
 paths:
   /sign-up:
@@ -312,6 +324,246 @@ paths:
                     example: "alice@example.com"
         "404":
           description: User not found
+
+  /join/room:
+    post:
+      tags:
+        - chat
+      summary: Join an existing chat room
+      description: |
+        **This is a WebSocket event.**
+        Allows the user to join an existing chat room by specifying the `roomId`.
+        Once joined, the user can send and receive messages within the room.
+        The client will emit the `joinRoom` event to the server with the required data.
+      operationId: joinRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                roomId:
+                  type: string
+                  description: ID of the room the user wants to join
+                  example: "room1"
+                userId:
+                  type: string
+                  description: ID of the user joining the room
+                  example: "user123"
+      responses:
+        "200":
+          description: Successfully joined the room
+        "404":
+          description: Room not found
+        "400":
+          description: Invalid room ID or user ID
+      x-swagger-router-controller: socket.io
+      x-disable-request: true
+      x-disable-response: true
+
+  /chat/message:
+    post:
+      tags:
+        - chat
+      summary: Send a chat message
+      description: |
+        **This is a WebSocket event.**
+        Sends a message to a specific chat room. The user must be authenticated and
+        part of the room to send a message. The message will be broadcast to all users in the room.
+        The client will emit the `sendMessage` event to the server with the message data.
+      operationId: sendMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                roomId:
+                  type: string
+                  description: ID of the room where the message is being sent
+                  example: "room1"
+                userId:
+                  type: string
+                  description: ID of the user sending the message
+                  example: "user123"
+                message:
+                  type: string
+                  description: The message content
+                  example: "Hello everyone!"
+      responses:
+        "200":
+          description: Message successfully sent
+        "400":
+          description: Invalid message or room ID
+      x-swagger-router-controller: socket.io
+      x-disable-request: true
+      x-disable-response: true
+
+  /room/create:
+    post:
+      tags:
+        - chat
+      summary: Create a new chat room
+      description: |
+        **This is a WebSocket event.**
+        Creates a new chat room. The room will be assigned a name, and the user creating it will
+        be the room's admin. The client will emit the `createRoom` event to the server with the room data.
+      operationId: createRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                roomName:
+                  type: string
+                  description: Name of the new chat room
+                  example: "Room1"
+                createdBy:
+                  type: string
+                  description: ID of the user creating the room
+                  example: "user123"
+      responses:
+        "200":
+          description: Successfully created the room
+        "400":
+          description: Invalid room name or user ID
+        "409":
+          description: Room name already exists
+      x-swagger-router-controller: socket.io
+      x-disable-request: true
+      x-disable-response: true
+
+  /room/delete:
+    post:
+      tags:
+        - chat
+      summary: Delete an existing chat room
+      description: |
+        **This is a WebSocket event.**
+        Deletes an existing chat room by providing the `roomId`. The client will emit the `deleteRoom` event to the server with the room data.
+      operationId: deleteRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                roomId:
+                  type: string
+                  description: ID of the room to be deleted
+                  example: "room1"
+      responses:
+        "200":
+          description: Successfully deleted the room
+        "404":
+          description: Room not found
+        "400":
+          description: Invalid room ID
+      x-swagger-router-controller: socket.io
+      x-disable-request: true
+      x-disable-response: true
+
+  /room/get:
+    get:
+      tags:
+        - chat
+      summary: Get the list of available chat rooms
+      description: |
+        **This is a WebSocket event.**
+        Retrieves the list of currently available chat rooms. The server will emit the `getRooms` event to the client with the list of rooms.
+      operationId: getRooms
+      responses:
+        "200":
+          description: List of available rooms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    roomId:
+                      type: string
+                      description: Unique identifier for the room
+                      example: "room1"
+                    roomName:
+                      type: string
+                      description: Name of the room
+                      example: "Room1"
+        "404":
+          description: No rooms found
+      x-swagger-router-controller: socket.io
+      x-disable-request: true
+      x-disable-response: true
+
+  /disconnect:
+    post:
+      tags:
+        - chat
+      summary: Disconnect from a chat room or the entire chat
+      description: |
+        **This is a WebSocket event.**
+        Disconnects the user from a specific room or from all rooms. The client will emit the `disconnect` event to the server with the user and room data.
+      operationId: disconnect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: ID of the user disconnecting
+                  example: "user123"
+                roomId:
+                  type: string
+                  description: ID of the room to disconnect from (optional)
+                  example: "room1"
+      responses:
+        "200":
+          description: Successfully disconnected
+        "404":
+          description: User not found or room not found
+      x-swagger-router-controller: socket.io
+      x-disable-request: true
+      x-disable-response: true
+
+  /auth/user:
+    post:
+      tags:
+        - chat
+      summary: Authenticates a user and provides available chat rooms
+      description: |
+        **This is a WebSocket event.**
+        Authenticates the user by their `userId` and associates it with the socket connection.
+        Upon successful authentication, the server emits the `room/available` event with the list of available rooms to the authenticated user.
+        The client will emit the `authUser` event with the `userId` to the server.
+      operationId: authUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: The user ID used for authentication
+                  example: "user123"
+      responses:
+        "200":
+          description: Successfully authenticated, available rooms returned
+        "401":
+          description: User authentication failed
+      x-swagger-router-controller: socket.io
+      x-disable-request: true
+      x-disable-response: true
 
 components:
   schemas:
