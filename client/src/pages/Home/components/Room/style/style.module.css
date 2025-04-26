@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+.card {
+  border-radius: 1.5rem;
+  padding: 1rem 1rem 0rem 1rem;
+  max-width: 20rem;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.468);
+  height: 8rem;
+margin: .5rem;
+}
+
+.flagsRow {
+  display: flex;
+  align-items: center;
+  gap: 0rem;
+  margin: 0px 0px 0px 0px;
+}
+
+
+.menu {
+  margin: 0px 0px 0px 0px;
+  margin-left: auto;
+  font-size: 1.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
+  margin: 8px 0px 8px 0px;
+}
+
+.description {
+  margin: 0px 0px 0px 0px;
+  font-size: .9rem;
+
+}
+
+.footer {
+  margin: 0px 0px 0px 0px;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  column-gap: 2.75rem;
+padding:0px 0px 0px 0px;
+
+}
+
+.avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  column-gap: 0.25rem;
+  font-size: 1rem;
+  font-weight: 400;
+  margin: 0px 0px 0px 0px;
+}
+
+.icon {
+  width: 1rem;
+  height: 2rem;
+}
+
+.avatarIcon {
+  background-color: #aeaeae; 
+  width: .7rem;
+  height: .7rem;
+  border-radius: 9999px; 
+  padding: 0.25rem;
+
+}
+
+.deleteButton{
+  margin: 0px 0px 0px 0px;
+  margin-left: auto;
+  font-size: .5rem;
+  cursor: pointer;
+  user-select: none;
+
+}
+
+.selectRoom{
+
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  justify-items: center;
+}
+
+.selectRoom:hover {
+  box-shadow: 0 4px 10px rgba(4, 100, 243, 0.468);
+  border-radius: 9999px; 
+
+}
